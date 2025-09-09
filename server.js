@@ -54,17 +54,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Sunucu http://localhost:${PORT} adresinde çalışıyor.`);
 });
-app.get('/liste', (req, res) => {
-    fs.readdir(uploadDir, (err, files) => {
-        if (err) {
-            return res.status(400).json({ error: "Dosya listesi alınamadı." });
-        }
-
-        const fileUrls = files.map(file => ({
-            name: file,
-            url: `/uploads/${file}`
-        }));
-
-        res.json(fileUrls);
-    });
-});
