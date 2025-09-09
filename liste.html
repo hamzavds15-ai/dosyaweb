@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dosya Listesi</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        ul { list-style: none; padding: 0; }
+        li { margin: 15px 0; padding: 10px; background: #f0f8ff; border-left: 4px solid #007bff; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📁 Dosya Listesi</h1>
+        <ul id="fileList"></ul>
+    </div>
+
+    <script>
+        fetch('/liste')
+            .then(res => res.json())
+            .then(data => {
+                const ul = document.getElementById('fileList');
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="${item.url}" target="_blank">${item.name}</a>`;
+                    ul.appendChild(li);
+                });
+            })
+            .catch(err => {
+                alert("Liste yüklenemedi.");
+                console.error(err);
+            });
+    </script>
+</body>
+</html>
