@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dosya Yükle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 12px;
+            width: 100%;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 30px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        #status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        #status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .progress-bar {
+            width: 100%;
+            background: #eee;
+            height: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #progressBar {
+            width: 0%;
+            height: 100%;
+            background: #007bff;
+            transition: width 0.1s;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📁 Dosya Yükle</h1>
+        <form id="uploadForm">
+            <input type="file" id="fileInput" required />
+            <button type="submit" id="uploadBtn">Yükle</button>
+        </form>
+        <div id="status"></div>
+        <div class="progress-bar">
+            <div id="progressBar"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const statusDiv = document.getElementById('status');
+            const progressBar = document.getElementById('progressBar');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            if (!file) {
+                statusDiv.textContent = "Lütfen bir dosya seçin!";
+                statusDiv.className = "error";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Butonu "Yükleniyor..." yap
+                uploadBtn.textContent = "Yükleniyor...";
+                uploadBtn.disabled = true;
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData,
+                    onUploadProgress: (event) => {
+                        if (event.lengthComputable) {
+                            const percent = Math.round((event.loaded / event.total) * 100);
+                            progressBar.style.width = percent + '%';
+                            statusDiv.textContent = `Yükleniyor... ${percent}%`;
+                        }
+                    }
+                });
+
+                // 💡 HATA YÖNETİMİ KODU BURAYA GELİR!
+                let data;
+                try {
+                    data = await response.json();
+                } catch (error) {
+                    data = { success: false, message: "Sunucu JSON döndürmedi." };
+                }
+
+                if (data.success) {
+                    statusDiv.textContent = `✅ Başarılı! Dosya: ${data.fileName}`;
+                    statusDiv.className = "success";
+                    progressBar.style.width = "100%";
+                } else {
+                    throw new Error(data.message || "Hata oluştu.");
+                }
+            } catch (error) {
+                statusDiv.textContent = "❌ Hata: " + error.message;
+                statusDiv.className = "error";
+                progressBar.style.width = "0%";
+                console.error("Yükleme hatası:", error);
+            } finally {
+                // Butonu tekrar "Yükle" yap
+                uploadBtn.textContent = "Yükle";
+                uploadBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
